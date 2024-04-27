@@ -10,23 +10,38 @@ if platform.system() == 'Windows':
 
 class OCRStatus:
     
-    def __init__(self, video_path, number_of_samples, region, frame_skip):
+    def __init__(self, video_path, number_of_sample_frames, sample_frames, region, default_start_end, start_frame, end_frame, frame_skip, queue):
 
         self.video_path = video_path
 
-        self.number_of_samples = number_of_samples
+        self.number_of_sample_frames = number_of_sample_frames
+
+        self.sample_frames = sample_frames
 
         self.region = region
 
+        self.default_start_end = default_start_end
+
+        self.start_frame = start_frame
+
+        self.end_frame = end_frame
+
         self.frame_skip = frame_skip
+
+        self.queue = queue
 
     def to_json(self):
         
         data = {
             "video_path": self.video_path,
-            "number_of_samples": self.number_of_samples,
+            "number_of_sample_frames": self.number_of_sample_frames,
+            "sample_frames": self.sample_frames,
             "region": self.region,
-            "frame_skip": self.frame_skip
+            "default_start_end": self.default_start_end,
+            "start_frame": self.start_frame,
+            "end_frame": self.end_frame,
+            "frame_skip": self.frame_skip,
+            "queue": self.queue
         }
         
         return json.dumps(data, indent=4)
@@ -141,23 +156,33 @@ def crop_image(image, region):
     return cropped_image
 
 
-def read_video(video_path, region, frame_skip=10):
+# Start Frame inclusive, End Frame exclusive
+
+def read_video(video_path, region, start_frame=0, end_frame=1000000000, frame_skip=10):
     
     subtitles = []
 
     video = cv2.VideoCapture(video_path)
 
+    frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
     fps = video.get(cv2.CAP_PROP_FPS)
 
-    frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    if start_frame < 0:
 
-    frames = [i for i in range(frame_skip, int(frame_count), frame_skip)]
+        start_frame = 0
+
+    if end_frame > frame_count:
+
+        end_frame = frame_count
+
+    frame_numbers = [i for i in range(start_frame, end_frame, frame_skip)]
 
     i = 1
 
-    for frame_no in frames:
+    for frame_number in frame_numbers:
         
-        video.set(cv2.CAP_PROP_POS_FRAMES, frame_no - 1)
+        video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
 
         ret, frame = video.read()
 
@@ -165,15 +190,15 @@ def read_video(video_path, region, frame_skip=10):
 
         duration = frame_skip
 
-        if (frame_no + duration) >= frame_count:
+        if (frame_number + duration) > end_frame:
 
-            duration = frame_count - frame_no - 1
+            duration = end_frame - frame_number
 
         text = read_image(image)
 
-        subtitles.append(Subtitle(int(frame_no - 1), int(duration), text))
+        subtitles.append(Subtitle(int(frame_number), int(duration), text))
 
-        print(f"(FS: {frame_skip}) Reading frame... {i}/{len(frames)}", end="\r")
+        print(f"Reading frame... {i}/{len(frame_numbers)}", end="\r")
 
         i += 1
 
@@ -182,26 +207,18 @@ def read_video(video_path, region, frame_skip=10):
     return fps, frame_count, subtitles
 
 
-def generate_sample_frames(video_path, samples_path, number_of_samples):
+def get_sample_frames(video_path, number_of_sample_frames):
 
     video = cv2.VideoCapture(video_path)
 
     frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
 
-    frames = [int(i * frame_count / (number_of_samples + 1)) for i in range(1, number_of_samples + 1)]
-
-    i = 1
-
-    for frame_no in frames:
-
-        video.set(cv2.CAP_PROP_POS_FRAMES, frame_no - 1)
-
-        ret, frame = video.read()
-
-        cv2.imwrite(f'{samples_path}/sample-{i}.jpg', frame)
-
-        print(f"(Samples: {number_of_samples}) Extracting frame... {i}/{len(frames)}", end="\r")
-
-        i += 1
-
     video.release()
+
+    if number_of_sample_frames > frame_count:
+
+        number_of_sample_frames = frame_count
+
+    sample_frames = [int(i * (frame_count/(number_of_sample_frames + 1))) for i in range(1, number_of_sample_frames + 1)]
+
+    return sample_frames

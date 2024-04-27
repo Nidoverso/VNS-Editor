@@ -4,18 +4,18 @@ VNS Editor is a Tkinter-based application designed to simplify and enhance the r
 
 ## Objective
 
-The results obtained from [VNS OCR](https://github.com/nidoverso/vns-ocr) may not always be accurate and can include repeated subtitles. To address this issue, VNS Editor enables the easy merging and splitting of subtitle sequences. For example, it allows you to combine the following sequences: "Hello", "Hello, how are", "Hello, How are you?", into a single sequence "Hello, How are you?".
+Process the result obtained from [VNS OCR](https://github.com/nidoverso/vns-ocr) to obtain usable subtitles and export them to ".srt" files.
 
 ## Usage
 
-### Create/Load Project
+### New/Load Project
 
 - A project is created by specifying the path to a video and loading a `.ocrdata` file, which is the output of [VNS OCR](https://github.com/nidoverso/vns-ocr).
 - Once created, the project can be saved to a file for resuming work from where you left off.
 
 ### Sequences
 
-- When loading a project, a list of the current sequences will be displayed. Initially, each sequence will contain a single subtitle.
+- When loading a project, a list of the current sequences will be displayed. Initially, each sequence will contain a single subtitle. You can select to simplify the subtitles before starting the project, it is recommended to leave it checked.
 - By clicking on a sequence, you can see the subtitles it contains and their visibility. Invisible subtitles will not be included in the final SRT file.
 
 ### Subtitles
@@ -40,8 +40,22 @@ The results obtained from [VNS OCR](https://github.com/nidoverso/vns-ocr) may no
 
 - Right-click (in the Sequences list): Performs the "Join Sequences" action.
 - Right-click (in the Subtitles list): Performs the "Break Sequence" action.
-- Ctrl + S: Saves the current text and the current project state.
+- Ctrl + S: Saves the current text.
 - Ctrl + B: Toggles the visibility of the selected sequence.
+
+## SRT Menu
+
+### Export SRT
+
+- Export the current project to SRT.
+
+### Translate SRT
+
+- Translates an SRT file from the specified language to the desired language. You can translate any SRT file regardless of whether it was created using [VNS Editor](https://github.com/nidoverso/vns-editor) or not.
+
+### Merge SRTs
+
+- Merge two SRT files into one. This function has been created thinking in visual novels that change the place where the text is shown during the game. With this idea in mind the process would be to make two or more OCRs, each one with a part of the screen, then create a project in the editor for each of them, export the result to SRT and finally merge them into one. You can merge any SRT file regardless of whether it was created using [VNS Editor](https://github.com/nidoverso/vns-editor) or not.
 
 ## License
 

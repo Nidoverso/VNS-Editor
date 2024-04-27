@@ -22,10 +22,19 @@ class Subtitle:
 
         if self.text:
 
+            # Replace line breaks and large blanks
+
             self.text = self.text.replace("\n", " ")
-            self.text = self.text.strip()
+            self.text = self.text.replace("   ", " ")
+            self.text = self.text.replace("  ", " ")
+
+            # Replace strange symbols
 
             self.text = self.text.replace("|", "I")
+            self.text = self.text.replace("[", "I")
+            self.text = self.text.replace("]", "I")
+            self.text = self.text.replace("{", "I")
+            self.text = self.text.replace("}", "I")
             self.text = self.text.replace("‘", "'")
             self.text = self.text.replace("’", "'")
             self.text = self.text.replace('“', '"')
@@ -36,14 +45,45 @@ class Subtitle:
             self.text = self.text.replace('»', '')
             self.text = self.text.replace('*', '')
             self.text = self.text.replace('~', '')
+            self.text = self.text.replace('-', '')
+
+            # Replace ellipses
+
+            self.text = self.text.replace(", ,", ",,")
+            self.text = self.text.replace(", .", ",.")
+            self.text = self.text.replace(". ,", ".,")
+            self.text = self.text.replace(". .", "..")
+
+            self.text = self.text.replace(",,,", "...")
+            self.text = self.text.replace(",,.", "...")
+            self.text = self.text.replace(",.,", "...")
+            self.text = self.text.replace(",..", "...")
+            self.text = self.text.replace(".,,", "...")
+            self.text = self.text.replace(".,.", "...")
+            self.text = self.text.replace("..,", "...")
+
+            # Eliminate empty spaces at the beginning and at the end
+            
+            self.text = self.text.strip()
+
+            # If the last character is a quotation mark and the first character is not a quotation mark, quotation marks are added at the beginning.
+
+            if len(self.text) > 1 and self.text[0] != '"' and self.text[-1] == '"':
+                self.text = '"' + self.text
+
+            # If the last character is a comma, the comma becomes a period.
 
             if len(self.text) > 0 and self.text[-1] == ",":
 
                 self.text = self.text[:-1] + "."
 
-            if len(self.text) > 1 and self.text[-2] == ",":
+            # If the penultimate character is a comma and the last character is a quotation mark, the comma becomes a period.
+
+            if len(self.text) > 1 and self.text[-2] == "," and self.text[-1] == '"':
                 
                 self.text = self.text[:-2] + "." + self.text[-1:]
+
+            # The text is scrolled through looking for the pattern (comma, space, capital letter) if found, it is replaced by (period, space, capital letter).
 
             new_text = ""
 
@@ -65,8 +105,6 @@ class Subtitle:
 
             self.text = new_text
 
-            if len(self.text) > 1 and self.text[0] != '"' and self.text[-1] == '"':
-                self.text = '"' + self.text
 
     def to_json(self):
         
@@ -297,24 +335,18 @@ def frame_to_time(frame_no, fps):
     return time
 
 
-def save_subtitles_to_srt(srt_path, subtitles, fps):
+def subtitles_to_srt_subtitles(subtitles, fps):
 
-    with open(srt_path, "w", encoding="utf-8") as srt_file:
+    srt_subtitles = []
 
-        i = 1
+    for subtitle in subtitles:
 
-        for subtitle in subtitles:
+        start_time = frame_to_time(subtitle.start_frame, fps)
 
-            start_time = frame_to_time(subtitle.start_frame, fps)
+        end_time = frame_to_time(subtitle.end_frame(), fps)
 
-            end_time = frame_to_time(subtitle.end_frame(), fps)
+        text = subtitle.text
+        
+        srt_subtitles.append([start_time, end_time, text])
 
-            text = subtitle.text
-
-            srt_file.write(f"{i}\n")
-
-            srt_file.write(f"{start_time} --> {end_time}\n")
-
-            srt_file.write(f"{text}\n\n") 
-
-            i += 1
+    return srt_subtitles

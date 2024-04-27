@@ -1,5 +1,4 @@
 import json
-import googletrans
 from .subtitles import Sequence
 from .ocr import OCRData
 
@@ -94,29 +93,3 @@ def load_editor_project_from_json(json_path):
         editor_project_json = json_file.read()
 
     return EditorProject.from_json(editor_project_json)
-
-
-def get_languages():
-
-    return googletrans.LANGUAGES
-
-
-def translate_subs(subtitles, src='en', dest='es'):
-
-    translated_subtitles = subtitles
-
-    translator = googletrans.Translator()
-
-    i = 1
-    
-    for sub in translated_subtitles:
-
-        if sub.text:
-        
-            sub.text = translator.translate(text=sub.text, src=src, dest=dest).text
-
-            print(f"(src: {src}, dest: {dest}) Translating subtitle... {i}/{len(translated_subtitles)}", end="\r")
-
-        i += 1
-
-    return translated_subtitles
